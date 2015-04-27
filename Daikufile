@@ -1,0 +1,28 @@
+use Path::Tiny qw(path);
+use Capture::Tiny qw(capture_stdout);
+use App::scan_prereqs_cpanfile;
+
+desc 'install perl modules';
+task install => sub {
+    sh q(cpanm --with-recommends --with-develop --with-all-features --installdeps .);
+};
+
+namespace generate => sub {
+    desc 'generate cpanfile';
+    task cpanfile => sub {
+        my $stdout = capture_stdout sub {
+            sh q(scan-prereqs-cpanfile --ignore=public,templates,var);
+        };
+        path('cpanfile')->spew($stdout);
+    };
+};
+
+namespace carton => sub {
+    desc 'carton install';
+    task install => sub {
+        sh qw(daiku generate:cpanfile);
+        sh qw(carton install);
+    };
+};
+
+task default => sub { sh q{daiku -T} };
