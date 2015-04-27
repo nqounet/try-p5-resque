@@ -1,6 +1,42 @@
-use Path::Tiny qw(path);
+use Path::Tiny qw(path tempdir);
 use Capture::Tiny qw(capture_stdout);
 use App::scan_prereqs_cpanfile;
+
+use Test::RedisServer;
+use Proclet;
+
+$ENV{TMPDIR} = '/tmp/mnt';
+
+
+desc 'serve';
+task serve => sub {
+    sh qw(daiku hdiutil:detach);
+    sh qw(daiku hdiutil:attach);
+    my $redis = Test::RedisServer->new(
+        auto_start => 0,
+        tmpdir     => tempdir(),
+    );
+    $ENV{REDIS_SERVER} = $redis->connect_info;    # 最後の値を取得している
+    my $proclet = Proclet->new(color => 1);
+    $proclet->service(
+        code => sub {
+            $redis->exec;
+        },
+        worker => 1,
+        tag    => 'redis'
+    );
+    $proclet->service(
+        code   => [qw{carton exec -- perl worker.pl}],
+        worker => 1,
+        tag    => 'worker'
+    );
+    $proclet->service(
+        code   => [qw{carton exec -- perl client.pl}],
+        worker => 1,
+        tag    => 'client'
+    );
+    $proclet->run;
+};
 
 desc 'install perl modules';
 task install => sub {
@@ -22,6 +58,51 @@ namespace carton => sub {
     task install => sub {
         sh qw(daiku generate:cpanfile);
         sh qw(carton install);
+    };
+};
+
+namespace hdiutil => sub {
+    my $dir = '/tmp/mnt';
+    task attach => sub {
+        my $drive = capture_stdout sub {
+            sh q{hdiutil attach -nomount ram://1024000};
+        };
+        chomp $drive;
+        sh qq{newfs_hfs $drive};
+        sh qq{mkdir $dir} unless -d $dir;
+        sh qq{mount -t hfs $drive $dir};
+    };
+    task detach => sub {
+        my $info = capture_stdout sub {
+            sh q{hdiutil info};
+        };
+        my $drive;
+        for my $line (split /\n/, $info) {
+            next unless $line =~ /$dir/ms;
+            ($drive) = $line =~ /\A([^\s]+)\s/ms;
+            last;
+        }
+        return unless $drive;
+        sh qq{echo 'detach $drive ...'};
+        sh qq{hdiutil detach $drive};
+    };
+};
+
+namespace generate => sub {
+    desc 'generate cpanfile';
+    task cpanfile => sub {
+        my $stdout = capture_stdout sub {
+            sh q(scan-prereqs-cpanfile --ignore=public,templates,var);
+        };
+        path('cpanfile')->spew($stdout);
+    };
+    desc 'generate schema.sql';
+    task ddl => sub {
+        my $stdout = capture_stdout sub {
+            sh
+              q(mysqldump --user=dark_insane --password=fqw43ZTGEf3txsw4fj0un9JojUlUol7j --no-data --compact --ignore-table=dark_insane.git_ddl_version dark_insane);
+        };
+        path('sql/schema.sql')->spew($stdout);
     };
 };
 
