@@ -27,7 +27,7 @@ task serve => sub {
     );
     $proclet->service(
         code   => [qw{carton exec -- perl worker.pl}],
-        worker => 1,
+        worker => 5,
         tag    => 'worker'
     );
     $proclet->service(
