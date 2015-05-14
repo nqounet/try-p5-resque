@@ -1,4 +1,5 @@
-requires 'Data::Printer';
 requires 'Log::Minimal';
+requires 'Path::Tiny';
+requires 'Proclet';
 requires 'Resque';
-requires 'feature';
+requires 'Test::RedisServer';
