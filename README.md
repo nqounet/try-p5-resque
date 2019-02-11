@@ -4,7 +4,8 @@ Try::Resque - It's new $module
 
 # SYNOPSIS
 
-    use Try::Resque;
+    # worker コンテナを4つ起動する
+    $ docker-compose up --build --scale worker=4
 
 # DESCRIPTION
 

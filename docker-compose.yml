@@ -1,29 +1,31 @@
-version:         "3"
+version:             "3"
 services:
-    webapp:
-        build:   .
-        environment:
-            - REDIS_SERVER=redis:6379
-            - LM_DEBUG=1
-        depends_on:
-            - redis
-        command: carmel exec -- perl client.pl
-    worker:
-        build: .
-        environment:
-            - REDIS_SERVER=redis:6379
-            - LM_DEBUG=1
-        depends_on:
-            - redis
-        command: carmel exec -- perl worker.pl
     nginx:
-        image:   nginx:perl
+        image:       nginx:perl
         volumes:
             - ./etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+        depends_on:
+            - webapp
         ports:
             - "8080:80"
+    webapp:
+        build:       .
+        environment:
+            - REDIS_SERVER=redis:6379
+            - LM_DEBUG=1
+        depends_on:
+            - redis
+        command:     carmel exec -- perl client.pl
+    worker:
+        build:       .
+        environment:
+            - REDIS_SERVER=redis:6379
+            - LM_DEBUG=1
+        depends_on:
+            - redis
+        command:     carmel exec -- perl worker.pl
     redis:
-        image:   redis:alpine
+        image:       redis:alpine
         ports:
             - 6379:6379
         volumes:

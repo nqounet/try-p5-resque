@@ -11,7 +11,7 @@ sub perform {
 
     infof('meow');
 
-    # sleep 1;
+    sleep 2;
     return;
 }
 

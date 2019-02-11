@@ -11,13 +11,11 @@ debugf('### begin worker.pl');
 my $worker = Resque->new->worker;
 
 # add_queue
-# sleep 3;
 debugf('### add_queue');
 $worker->add_queue('neko');
 $worker->add_queue('echo');
 
 # work
-# sleep 3;
 debugf('### work');
 $worker->work;
 

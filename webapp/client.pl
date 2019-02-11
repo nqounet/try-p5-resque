@@ -20,8 +20,6 @@ while ($count--) {
         }
     );
 
-    # sleep 1;
-
     debugf('push neko');
     $resque->push(
         neko => +{
@@ -30,7 +28,7 @@ while ($count--) {
         }
     );
 
-    # sleep 1;
+    sleep 1;
 }
 
 debugf('### end client.pl');
