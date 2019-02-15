@@ -1,4 +1,4 @@
-FROM perl:latest
+FROM perl:5
 
 RUN useradd -m -s /bin/bash appuser \
     && cpanm Carmel --notest
