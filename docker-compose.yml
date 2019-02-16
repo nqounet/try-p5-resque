@@ -1,7 +1,7 @@
 version:             "3"
 services:
     nginx:
-        image:       nginx:perl
+        image:       nginx:alpine
         volumes:
             - ./etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
         depends_on:
