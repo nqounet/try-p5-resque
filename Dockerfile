@@ -1,7 +1,7 @@
-FROM perl:5
+FROM perl:latest
 
 RUN useradd -m -s /bin/bash appuser \
-    && cpanm Carmel --notest
+    && cpanm Carmel --notest --quiet
 
 WORKDIR /home/appuser/webapp
 RUN chown appuser:appuser /home/appuser/webapp
